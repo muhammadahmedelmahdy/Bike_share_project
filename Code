@@ -1,0 +1,187 @@
+import time
+import pandas as pd
+import numpy as np
+import calendar
+CITY_DATA = { 'chicago': 'chicago.csv',
+              'new york city': 'new_york_city.csv',
+              'washington': 'washington.csv' }
+
+def get_filters():
+    """
+    Asks user to specify a city, month, and day to analyze.
+
+    Returns:
+        (str) city - name of the city to analyze
+        (str) month - name of the month to filter by, or "all" to apply no month filter
+        (str) day - name of the day of week to filter by, or "all" to apply no day filter
+    """
+    city=' '
+    month=' '
+    day=' '
+    print('Hello! Let\'s explore some US bikeshare data!')
+    # TO DO: get user input for city (chicago, new york city, washington). HINT: Use a while loop to handle invalid input 
+    while city != 'chicago' and city != 'new york city' and city != 'washington':
+       city=input('which city do you want to compute data for?').lower()
+
+    # TO DO: get user input for month (all, january, february, ... , june)
+    months=['january','february','march','april','may','june']
+    while month not in months and month != 'all':
+        month=input('which month do you want to filter? if all, write all').lower()
+    # TO DO: get user input for day of week (all, monday, tuesday, ... sunday)
+    days=['monday','tuesday','wednesday','thursday','friday','saturday','sudnay']
+    while day != 'all' and day not in days:
+        day=input('which day ? if all, write all').lower()
+    print('-'*40)
+    return city, month, day
+
+
+def load_data(city, month, day):
+    """
+    Loads data for the specified city and filters by month and day if applicable.
+
+    Args:
+        (str) city - name of the city to analyze
+        (str) month - name of the month to filter by, or "all" to apply no month filter
+        (str) day - name of the day of week to filter by, or "all" to apply no day filter
+    Returns:
+        df - Pandas DataFrame containing city data filtered by month and day
+    """
+
+    df= pd.read_csv(CITY_DATA[city])
+    df['Start Time'] = pd.to_datetime(df['Start Time'])
+    df['month']=df['Start Time'].dt.month
+    df['day_of_week']=df['Start Time'].dt.day_name()
+    months=['january','february','march','april','may','june']
+    
+    if month!='all':
+        month=months.index(month)+1
+        df=df[df['month']==month]
+    if day !='all':
+        df=df[df['day_of_week']==day]
+
+    return df
+
+
+def time_stats(df):
+    """Displays statistics on the most frequent times of travel."""
+   # calendar=['January','February','March','April','May','June','July','August','September','October','November','
+
+    print('\nCalculating The Most Frequent Times of Travel...\n')
+    start_time = time.time()
+
+    # TO DO: display the most common month
+
+    desired_month=df['month'].mode()[0]
+    print('The most common month is',calendar.month_name[desired_month])
+
+    # TO DO: display the most common day of week
+    day=df['day_of_week'].mode()[0]
+    print('most common day is',day)
+
+
+    # TO DO: display the most common start hour
+    df['hour column']=df['Start Time'].dt.hour
+    st_hr=df['hour column'].mode()[0]
+    print('the most common hour is:',st_hr)
+
+    print("\nThis took %s seconds." % (time.time() - start_time))
+    print('-'*40)
+
+
+def station_stats(df):
+    """Displays statistics on the most popular stations and trip."""
+
+    print('\nCalculating The Most Popular Stations and Trip...\n')
+    start_time = time.time()
+
+    # TO DO: display most commonly used start station
+    common_station=df['Start Station'].mode()[0]
+    print('The the most common start station is ',common_station)
+
+    # TO DO: display most commonly used end station
+    common_end=df['End Station'].mode()[0]
+    print('The Most common end station is ',common_end)
+    
+
+
+    # TO DO: display most frequent combination of start station and end station trip
+    df['Start & End']=df['Start Station'] + '& ' + df['End Station']
+    common_start_end= df['Start & End'].mode()[0]
+    print('The Most combination is ',common_start_end)
+
+
+    print("\nThis took %s seconds." % (time.time() - start_time))
+    print('-'*40)
+
+
+def trip_duration_stats(df):
+    """Displays statistics on the total and average trip duration."""
+
+    print('\nCalculating Trip Duration...\n')
+    start_time = time.time()
+
+    # TO DO: display total travel time
+    total_time=df['Trip Duration'].sum()
+    print('the total time is ',total_time)
+    # TO DO: display mean travel time
+    the_average=df['Trip Duration'].mean()
+    print('The average is ',the_average)
+
+
+    print("\nThis took %s seconds." % (time.time() - start_time))
+    print('-'*40)
+
+
+def user_stats(df):
+    """Displays statistics on bikeshare users."""
+
+    print('\nCalculating User Stats...\n')
+    start_time = time.time()
+
+    # TO DO: Display counts of user types
+    counts= df['User Type'].value_counts()
+    print('the counts value is',counts)
+    # TO DO: Display counts of gender
+    if 'Gender'in df:
+        gcounts=df['Gender'].value_counts()
+        print('The gender counts is ',gcounts)
+    else:
+        print('Gender stats cannot be calculated because Gender does not appear in the dataframe')  
+    # TO DO: Display earliest, most recent, and most common year of birth
+    if 'Birth Year' in df:
+        earliest=df['Birth Year'].min()
+        recent=df['Birth Year'].max()
+        common=df['Birth Year'].mode()[0]
+        print('the earliest year is ',earliest,' and the most recent year is ',recent,'and the most common year is ',common)
+    else:
+        print('Birth Year stats cannot be calculated because Birth Year does not appear in the dataframe')
+
+
+    print("\nThis took %s seconds." % (time.time() - start_time))
+    print('-'*40)
+def view_data_fivebyfive(df):
+    view_display = input("Would you like to view 5 rows of individual trip data? Enter yes or no?").lower()
+    start_loc = 0
+    while (view_display=='yes'):
+        print(df.iloc[start_loc:start_loc+5])
+        start_loc += 5
+        view_display = input("Do you wish to continue?: ").lower()
+
+def main():
+    while True:
+        city, month, day = get_filters()
+        df = load_data(city, month, day)
+
+        time_stats(df)
+        station_stats(df)
+        trip_duration_stats(df)
+        user_stats(df)
+        view_data_fivebyfive(df)
+
+        restart = input('\nWould you like to restart? Enter yes or no.\n')
+        if restart.lower() != 'yes':
+            break
+
+
+if __name__ == "__main__":
+	main()
